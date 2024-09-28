@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Loader2, ImageIcon } from 'lucide-react';
+import { Loader2, ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 
 export default function AIImageGenerator() {
@@ -19,6 +19,9 @@ export default function AIImageGenerator() {
   const [style, setStyle] = useState('vivid');
   const [numImages, setNumImages] = useState(1);
   const [generatedImage, setGeneratedImage] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [responseFormat, setResponseFormat] = useState('url');
+  const [user, setUser] = useState('');
 
   const generateImageMutation = useMutation({
     mutationFn: async (formData: any) => {
@@ -43,7 +46,16 @@ export default function AIImageGenerator() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    generateImageMutation.mutate({ prompt, model, size, quality, style, n: numImages });
+    generateImageMutation.mutate({ 
+      prompt, 
+      model, 
+      size, 
+      quality, 
+      style, 
+      n: numImages,
+      responseFormat,
+      user
+    });
   };
 
   return (
@@ -114,6 +126,51 @@ export default function AIImageGenerator() {
                 </Select>
               </div>
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full"
+            >
+              {showAdvanced ? (
+                <>
+                  <ChevronUp className="mr-2 h-4 w-4" />
+                  Hide Advanced Settings
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="mr-2 h-4 w-4" />
+                  Show Advanced Settings
+                </>
+              )}
+            </Button>
+
+            {showAdvanced && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="responseFormat">Response Format</Label>
+                  <Select value={responseFormat} onValueChange={setResponseFormat}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select response format" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="url">URL</SelectItem>
+                      <SelectItem value="b64_json">Base64 JSON</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="user">User Identifier</Label>
+                  <Input
+                    id="user"
+                    value={user}
+                    onChange={(e) => setUser(e.target.value)}
+                    placeholder="Enter a unique identifier for the user"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <Label>Number of Images: {numImages}</Label>
               <Slider

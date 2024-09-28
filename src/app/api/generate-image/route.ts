@@ -6,7 +6,7 @@ const openai = new OpenAI({
 });
 
 export async function POST(request: NextRequest) {
-  const { prompt, model, size, quality, style, n } = await request.json();
+  const { prompt, model, size, quality, style, n, responseFormat, user } = await request.json();
 
   try {
     const response = await openai.images.generate({
@@ -16,9 +16,15 @@ export async function POST(request: NextRequest) {
       size,
       quality,
       style,
+      response_format: responseFormat,
+      user,
     });
 
-    return NextResponse.json({ url: response.data[0].url });
+    if (responseFormat === 'b64_json') {
+      return NextResponse.json({ b64_json: response.data[0].b64_json });
+    } else {
+      return NextResponse.json({ url: response.data[0].url });
+    }
   } catch (error) {
     console.error('Error generating image:', error);
     return NextResponse.json({ error: 'Error generating image' }, { status: 500 });
