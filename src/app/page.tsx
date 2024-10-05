@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, ImageIcon, Download } from 'lucide-react';
+import { Loader2, Download, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
 interface GenerateImageFormData {
@@ -27,16 +27,17 @@ interface GenerateImageFormData {
 
 export default function AIImageGenerator() {
   const [prompt, setPrompt] = useState('');
-  const [model, setModel] = useState('dall-e-2');
-  const [size, setSize] = useState('1024x1024');
+  const [model, setModel] = useState('flux-schnell');
+  const [size, setSize] = useState('512x512');
   const [quality, setQuality] = useState('standard');
   const [style, setStyle] = useState('vivid');
   const [numImages, setNumImages] = useState(1);
   const [generatedImage, setGeneratedImage] = useState('');
-  const [imageSize, setImageSize] = useState('landscape_4_3');
+  const [imageSize, setImageSize] = useState('portrait_4_3');
   const [numInferenceSteps, setNumInferenceSteps] = useState(4);
   const [seed, setSeed] = useState<number | undefined>(undefined);
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
+  const [isImageLoading, setIsImageLoading] = useState(false);
 
   const generateImageMutation = useMutation({
     mutationFn: async (formData: GenerateImageFormData) => {
@@ -58,6 +59,7 @@ export default function AIImageGenerator() {
       } else if (data.images && data.images.length > 0) {
         setGeneratedImage(data.images[0].url);
       }
+      setIsImageLoading(true);
     },
   });
 
@@ -248,12 +250,18 @@ export default function AIImageGenerator() {
         <div className="w-full md:w-1/2 relative">
           {generatedImage ? (
             <>
+              {isImageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                </div>
+              )}
               <Image
                 src={generatedImage}
                 alt="Generated"
                 width={500}
                 height={500}
                 className="w-full rounded-lg shadow-lg"
+                onLoad={() => setIsImageLoading(false)}
               />
               <Button
                 onClick={handleDownload}
@@ -265,13 +273,9 @@ export default function AIImageGenerator() {
               </Button>
             </>
           ) : (
-            <Image
-              src="https://via.placeholder.com/500x500?text=Your+image+will+appear+here"
-              alt="Placeholder"
-              width={500}
-              height={500}
-              className="w-full rounded-lg shadow-lg"
-            />
+            <div className="w-full aspect-square bg-gray-100 rounded-lg shadow-lg flex items-center justify-center">
+              <ImageIcon className="h-12 w-12 text-gray-400" />
+            </div>
           )}
         </div>
       </div>
